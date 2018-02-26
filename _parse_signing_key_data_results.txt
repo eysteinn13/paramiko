@@ -1,0 +1,11 @@
+Results from function: _parse_signing_key_data
+The following lines where hit running the pytest command
+10
+11
+13
+2
+4
+8
+Total lines hit: 6
+Expected lines: 20
+Total coverage is 0.3/1.0

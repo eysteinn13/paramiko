@@ -28,8 +28,11 @@ from paramiko.pkey import PKey
 from paramiko.py3compat import b
 from paramiko.ssh_exception import SSHException, PasswordRequiredException
 
-
+from test_parser import TestCoverageHandler
 OPENSSH_AUTH_MAGIC = b"openssh-key-v1\x00"
+
+tch = TestCoverageHandler("_parse_signing_key_data", 15)
+
 
 
 def unpad(data):
@@ -94,6 +97,7 @@ class Ed25519Key(PKey):
         # source for a full implementation.
         message = Message(data)
         if message.get_bytes(len(OPENSSH_AUTH_MAGIC)) != OPENSSH_AUTH_MAGIC:
+            tch.test_hit(1)
             raise SSHException("Invalid key")
 
         ciphername = message.get_text()
@@ -102,12 +106,16 @@ class Ed25519Key(PKey):
         num_keys = message.get_int()
 
         if kdfname == "none":
+            tch.test_hit(2)
             # kdfname of "none" must have an empty kdfoptions, the ciphername
             # must be "none"
             if kdfoptions or ciphername != "none":
+                tch.test_hit(3)
                 raise SSHException("Invalid key")
         elif kdfname == "bcrypt":
+            tch.test_hit(4)
             if not password:
+                tch.test_hit(5)
                 raise PasswordRequiredException(
                     "Private key file is encrypted"
                 )
@@ -115,22 +123,28 @@ class Ed25519Key(PKey):
             bcrypt_salt = kdf.get_binary()
             bcrypt_rounds = kdf.get_int()
         else:
+            tch.test_hit(6)
             raise SSHException("Invalid key")
 
         if ciphername != "none" and ciphername not in Transport._cipher_info:
+            tch.test_hit(7)
             raise SSHException("Invalid key")
 
         public_keys = []
         for _ in range(num_keys):
+            tch.test_hit(8)
             pubkey = Message(message.get_binary())
             if pubkey.get_text() != "ssh-ed25519":
+                tch.test_hit(9)
                 raise SSHException("Invalid key")
             public_keys.append(pubkey.get_binary())
 
         private_ciphertext = message.get_binary()
         if ciphername == "none":
+            tch.test_hit(10)
             private_data = private_ciphertext
         else:
+            tch.test_hit(11)
             cipher = Transport._cipher_info[ciphername]
             key = bcrypt.kdf(
                 password=b(password),
@@ -152,11 +166,14 @@ class Ed25519Key(PKey):
 
         message = Message(unpad(private_data))
         if message.get_int() != message.get_int():
+            tch.test_hit(12)
             raise SSHException("Invalid key")
 
         signing_keys = []
         for i in range(num_keys):
+            tch.test_hit(13)
             if message.get_text() != "ssh-ed25519":
+                tch.test_hit(14)
                 raise SSHException("Invalid key")
             # A copy of the public key, again, ignore.
             public = message.get_binary()
@@ -174,6 +191,7 @@ class Ed25519Key(PKey):
             message.get_binary()
 
         if len(signing_keys) != 1:
+            tch.test_hit(15)
             raise SSHException("Invalid key")
         return signing_keys[0]
 
