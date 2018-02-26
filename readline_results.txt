@@ -1,0 +1,23 @@
+Results from function: readline
+The following lines where hit running the pytest command
+1
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+3
+4
+5
+7
+8
+9
+Total lines hit: 18
+Expected lines: 20
+Total coverage is 0.9/1.0
