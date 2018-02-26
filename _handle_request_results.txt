@@ -1,0 +1,18 @@
+Results from function: _handle_request
+The following lines where hit running the pytest command
+1
+11
+12
+14
+15
+17
+21
+23
+28
+29
+6
+8
+9
+Total lines hit: 13
+Expected lines: 20
+Total coverage is 0.65/1.0

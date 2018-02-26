@@ -42,6 +42,8 @@ from paramiko.buffered_pipe import BufferedPipe, PipeTimeout
 from paramiko import pipe
 from paramiko.util import ClosingContextManager
 
+from test_parser import TestCoverageHandler
+tch = TestCoverageHandler("_handle_request", 29)
 
 def open_only(func):
     """
@@ -1043,13 +1045,16 @@ class Channel (ClosingContextManager):
         server = self.transport.server_object
         ok = False
         if key == 'exit-status':
+            tch.test_hit(1)
             self.exit_status = m.get_int()
             self.status_event.set()
             ok = True
         elif key == 'xon-xoff':
+            tch.test_hit(2)
             # ignore
             ok = True
         elif key == 'pty-req':
+            tch.test_hit(3)
             term = m.get_string()
             width = m.get_int()
             height = m.get_int()
@@ -1057,8 +1062,10 @@ class Channel (ClosingContextManager):
             pixelheight = m.get_int()
             modes = m.get_string()
             if server is None:
+                tch.test_hit(4)
                 ok = False
             else:
+                tch.test_hit(5)
                 ok = server.check_channel_pty_request(
                     self,
                     term,
@@ -1069,47 +1076,65 @@ class Channel (ClosingContextManager):
                     modes
                 )
         elif key == 'shell':
+            tch.test_hit(6)
             if server is None:
+                tch.test_hit(7)
                 ok = False
             else:
+                tch.test_hit(8)
                 ok = server.check_channel_shell_request(self)
         elif key == 'env':
+            tch.test_hit(9)
             name = m.get_string()
             value = m.get_string()
             if server is None:
+                tch.test_hit(10)
                 ok = False
             else:
+                tch.test_hit(11)
                 ok = server.check_channel_env_request(self, name, value)
         elif key == 'exec':
+            tch.test_hit(12)
             cmd = m.get_string()
             if server is None:
+                tch.test_hit(13)
                 ok = False
             else:
+                tch.test_hit(14)
                 ok = server.check_channel_exec_request(self, cmd)
         elif key == 'subsystem':
+            tch.test_hit(15)
             name = m.get_text()
             if server is None:
+                tch.test_hit(16)
                 ok = False
             else:
+                tch.test_hit(17)
                 ok = server.check_channel_subsystem_request(self, name)
         elif key == 'window-change':
+            tch.test_hit(18)
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
             pixelheight = m.get_int()
             if server is None:
+                tch.test_hit(19)
                 ok = False
             else:
+                tch.test_hit(20)
                 ok = server.check_channel_window_change_request(
                     self, width, height, pixelwidth, pixelheight)
         elif key == 'x11-req':
+            tch.test_hit(21)
             single_connection = m.get_boolean()
             auth_proto = m.get_text()
             auth_cookie = m.get_binary()
             screen_number = m.get_int()
             if server is None:
+                tch.test_hit(22)
                 ok = False
             else:
+                tch.test_hit(23)
                 ok = server.check_channel_x11_request(
                     self,
                     single_connection,
@@ -1118,16 +1143,22 @@ class Channel (ClosingContextManager):
                     screen_number
                 )
         elif key == 'auth-agent-req@openssh.com':
+            tch.test_hit(24)
             if server is None:
+                tch.test_hit(25)
                 ok = False
             else:
+                tch.test_hit(26)
                 ok = server.check_channel_forward_agent_request(self)
         else:
+            tch.test_hit(27)
             self._log(DEBUG, 'Unhandled channel request "{}"'.format(key))
             ok = False
         if want_reply:
+            tch.test_hit(28)
             m = Message()
             if ok:
+                tch.test_hit(29)
                 m.add_byte(cMSG_CHANNEL_SUCCESS)
             else:
                 m.add_byte(cMSG_CHANNEL_FAILURE)
