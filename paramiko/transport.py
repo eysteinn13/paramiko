@@ -73,8 +73,8 @@ from paramiko.ssh_exception import (
 )
 from paramiko.util import retry_on_signal, ClosingContextManager, clamp_value
 from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("_parse_kex_init", 16)
-
+from test_parser import TestCoverageHandler
+tch = TestCoverageHandler("_parse_channel_open", 23)
 
 # for thread cleanup
 _active_threads = []
@@ -2492,13 +2492,17 @@ class Transport(threading.Thread, ClosingContextManager):
             kind == 'auth-agent@openssh.com' and
             self._forward_agent_handler is not None
         ):
+            tch.test_hit(1)
             self._log(DEBUG, 'Incoming forward agent connection')
             self.lock.acquire()
             try:
+                tch.test_hit(2)
                 my_chanid = self._next_channel()
             finally:
+                tch.test_hit(3)
                 self.lock.release()
         elif (kind == 'x11') and (self._x11_handler is not None):
+            tch.test_hit(4)
             origin_addr = m.get_text()
             origin_port = m.get_int()
             self._log(
@@ -2509,10 +2513,13 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self.lock.acquire()
             try:
+                tch.test_hit(5)
                 my_chanid = self._next_channel()
             finally:
+                tch.test_hit(6)
                 self.lock.release()
         elif (kind == 'forwarded-tcpip') and (self._tcp_handler is not None):
+            tch.test_hit(7)
             server_addr = m.get_text()
             server_port = m.get_int()
             origin_addr = m.get_text()
@@ -2525,22 +2532,29 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self.lock.acquire()
             try:
+                tch.test_hit(8)
                 my_chanid = self._next_channel()
             finally:
+                tch.test_hit(9)
                 self.lock.release()
         elif not self.server_mode:
+            tch.test_hit(10)
             self._log(
                 DEBUG,
                 'Rejecting "{}" channel request from server.'.format(kind))
             reject = True
             reason = OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
         else:
+            tch.test_hit(11)
             self.lock.acquire()
             try:
+                tch.test_hit(12)
                 my_chanid = self._next_channel()
             finally:
+                tch.test_hit(13)
                 self.lock.release()
             if kind == 'direct-tcpip':
+                tch.test_hit(14)
                 # handle direct-tcpip requests coming from the client
                 dest_addr = m.get_text()
                 dest_port = m.get_int()
@@ -2552,14 +2566,17 @@ class Transport(threading.Thread, ClosingContextManager):
                     (dest_addr, dest_port)
                 )
             else:
+                tch.test_hit(15)
                 reason = self.server_object.check_channel_request(
                     kind, my_chanid)
             if reason != OPEN_SUCCEEDED:
+                tch.test_hit(16)
                 self._log(
                     DEBUG,
                     'Rejecting "{}" channel request from client.'.format(kind))
                 reject = True
         if reject:
+            tch.test_hit(17)
             msg = Message()
             msg.add_byte(cMSG_CHANNEL_OPEN_FAILURE)
             msg.add_int(chanid)
@@ -2572,6 +2589,7 @@ class Transport(threading.Thread, ClosingContextManager):
         chan = Channel(my_chanid)
         self.lock.acquire()
         try:
+            tch.test_hit(18)
             self._channels.put(my_chanid, chan)
             self.channels_seen[my_chanid] = True
             chan._set_transport(self)
@@ -2580,6 +2598,7 @@ class Transport(threading.Thread, ClosingContextManager):
             chan._set_remote_channel(
                 chanid, initial_window_size, max_packet_size)
         finally:
+            tch.test_hit(19)
             self.lock.release()
         m = Message()
         m.add_byte(cMSG_CHANNEL_OPEN_SUCCESS)
@@ -2592,10 +2611,13 @@ class Transport(threading.Thread, ClosingContextManager):
             'Secsh channel {:d} ({}) opened.'.format(my_chanid, kind)
         )
         if kind == 'auth-agent@openssh.com':
+            tch.test_hit(20)
             self._forward_agent_handler(chan)
         elif kind == 'x11':
+            tch.test_hit(21)
             self._x11_handler(chan, (origin_addr, origin_port))
         elif kind == 'forwarded-tcpip':
+            tch.test_hit(22)
             chan.origin_addr = (origin_addr, origin_port)
             self._tcp_handler(
                 chan,
@@ -2603,6 +2625,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 (server_addr, server_port)
             )
         else:
+            tch.test_hit(23)
             self._queue_incoming_channel(chan)
 
     def _parse_debug(self, m):

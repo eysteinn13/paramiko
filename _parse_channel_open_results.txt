@@ -1,0 +1,25 @@
+Results from function: _parse_channel_open
+The following lines where hit running the pytest command
+1
+11
+12
+13
+14
+15
+16
+17
+18
+19
+2
+21
+22
+23
+4
+5
+6
+7
+8
+9
+Total lines hit: 20
+Expected lines: 20
+Total coverage is 1.0/1.0
