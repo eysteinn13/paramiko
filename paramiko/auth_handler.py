@@ -23,7 +23,7 @@
 import weakref
 import time
 from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("_parse_service_accept", 22)
+tch = TestCoverageHandler("_parse_userauth_request", 26)
 
 from paramiko.common import (
     cMSG_SERVICE_REQUEST, cMSG_DISCONNECT, DISCONNECT_SERVICE_NOT_AVAILABLE,
@@ -435,6 +435,7 @@ Error Message: {}
 
     def _parse_userauth_request(self, m):
         if not self.transport.server_mode:
+            tch.test_hit(1)
             # er, uh... what?
             m = Message()
             m.add_byte(cMSG_USERAUTH_FAILURE)
@@ -443,6 +444,7 @@ Error Message: {}
             self.transport._send_message(m)
             return
         if self.authenticated:
+            tch.test_hit(2)
             # ignore
             return
         username = m.get_text()
@@ -455,10 +457,12 @@ Error Message: {}
             )
         )
         if service != 'ssh-connection':
+            tch.test_hit(3)
             self._disconnect_service_not_available()
             return
         if ((self.auth_username is not None) and
                 (self.auth_username != username)):
+            tch.test_hit(4)
             self._log(
                 WARNING,
                 'Auth rejected because the client attempted to change username in mid-flight'  # noqa
@@ -470,17 +474,21 @@ Error Message: {}
         gss_auth = self.transport.server_object.enable_auth_gssapi()
 
         if method == 'none':
+            tch.test_hit(5)
             result = self.transport.server_object.check_auth_none(username)
         elif method == 'password':
+            tch.test_hit(6)
             changereq = m.get_boolean()
             password = m.get_binary()
             try:
                 password = password.decode('UTF-8')
             except UnicodeError:
+                tch.test_hit(7)
                 # some clients/servers expect non-utf-8 passwords!
                 # in this case, just return the raw byte string.
                 pass
             if changereq:
+                tch.test_hit(8)
                 # always treated as failure, since we don't support changing
                 # passwords, but collect the list of valid auth types from
                 # the callback anyway
@@ -491,35 +499,43 @@ Error Message: {}
                 try:
                     newpassword = newpassword.decode('UTF-8', 'replace')
                 except UnicodeError:
+                    tch.test_hit(9)
                     pass
                 result = AUTH_FAILED
             else:
+                tch.test_hit(10)
                 result = self.transport.server_object.check_auth_password(
                     username, password)
         elif method == 'publickey':
+            tch.test_hit(11)
             sig_attached = m.get_boolean()
             keytype = m.get_text()
             keyblob = m.get_binary()
             try:
                 key = self.transport._key_info[keytype](Message(keyblob))
             except SSHException as e:
+                tch.test_hit(12)
                 self._log(
                     INFO,
                     'Auth rejected: public key: {}'.format(str(e)))
                 key = None
             except Exception as e:
+                tch.test_hit(3)
                 msg = 'Auth rejected: unsupported or mangled public key ({}: {})' # noqa
                 self._log(INFO, msg.format(e.__class__.__name__, e))
                 key = None
             if key is None:
+                tch.test_hit(14)
                 self._disconnect_no_more_auth()
                 return
             # first check if this key is okay... if not, we can skip the verify
             result = self.transport.server_object.check_auth_publickey(
                 username, key)
             if result != AUTH_FAILED:
+                tch.test_hit(15)
                 # key is okay, verify it
                 if not sig_attached:
+                    tch.test_hit(16)
                     # client wants to know if this key is acceptable, before it
                     # signs anything...  send special "ok" message
                     m = Message()
@@ -531,19 +547,23 @@ Error Message: {}
                 sig = Message(m.get_binary())
                 blob = self._get_session_blob(key, service, username)
                 if not key.verify_ssh_sig(blob, sig):
+                    tch.test_hit(17)
                     self._log(
                         INFO,
                         'Auth rejected: invalid signature')
                     result = AUTH_FAILED
         elif method == 'keyboard-interactive':
+            tch.test_hit(18)
             submethods = m.get_string()
             result = self.transport.server_object.check_auth_interactive(
                 username, submethods)
             if isinstance(result, InteractiveQuery):
+                tch.test_hit(19)
                 # make interactive query instead of response
                 self._interactive_query(result)
                 return
         elif method == "gssapi-with-mic" and gss_auth:
+            tch.test_hit(20)
             sshgss = GSSAuth(method)
             # Read the number of OID mechanisms supported by the client.
             # OpenSSH sends just one OID. It's the Kerveros V5 OID and that's
@@ -552,6 +572,7 @@ Error Message: {}
             # We can't accept more than one OID, so if the SSH client sends
             # more than one, disconnect.
             if mechs > 1:
+                tch.test_hit(21)
                 self._log(
                     INFO,
                     'Disconnect: Received more than one GSS-API OID mechanism')
@@ -560,6 +581,7 @@ Error Message: {}
             mech_ok = sshgss.ssh_check_mech(desired_mech)
             # if we don't support the mechanism, disconnect.
             if not mech_ok:
+                tch.test_hit(22)
                 self._log(
                     INFO,
                     'Disconnect: Received an invalid GSS-API OID mechanism')
@@ -579,9 +601,11 @@ Error Message: {}
             self.transport._send_message(m)
             return
         elif method == "gssapi-keyex" and gss_auth:
+            tch.test_hit(23)
             mic_token = m.get_string()
             sshgss = self.transport.kexgss_ctxt
             if sshgss is None:
+                tch.test_hit(24)
                 # If there is no valid context, we reject the authentication
                 result = AUTH_FAILED
                 self._send_auth_result(username, method, result)
@@ -590,6 +614,7 @@ Error Message: {}
                                      self.transport.session_id,
                                      self.auth_username)
             except Exception:
+                tch.test_hit(25)
                 result = AUTH_FAILED
                 self._send_auth_result(username, method, result)
                 raise
@@ -597,6 +622,7 @@ Error Message: {}
             self.transport.server_object.check_auth_gssapi_keyex(
                 username, result)
         else:
+            tch.test_hit(26)
             result = self.transport.server_object.check_auth_none(username)
         # okay, send result
         self._send_auth_result(username, method, result)

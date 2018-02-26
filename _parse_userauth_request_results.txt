@@ -1,0 +1,16 @@
+Results from function: _parse_userauth_request
+The following lines where hit running the pytest command
+1
+10
+11
+15
+18
+19
+2
+3
+4
+5
+6
+Total lines hit: 11
+Expected lines: 20
+Total coverage is 0.55/1.0
