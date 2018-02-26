@@ -20,7 +20,6 @@ class TestCoverageHandler:
         self.function_name = function_name
         file_name = function_name + "_results.txt"
         self.path = os.path.join(os.getcwd(), file_name)
-        print(self.path)
         self.expected_lines = expected_lines
 
     def test_hit(self, line_id):
@@ -29,8 +28,8 @@ class TestCoverageHandler:
 
     def report_results(self):
         with open(self.path, "r") as result_file:
-            results = [r.strip() for r in result_file.readlines()]
-            results = list(set(results))
+            results = list(set([r.strip() for r in result_file.readlines()]))
+            sys.stdout = open(self.path, 'w')
             print("Results from function: " + self.function_name)
             print("The following lines where hit running the pytest command")
             for r in sorted(results):
