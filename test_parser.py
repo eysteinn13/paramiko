@@ -16,11 +16,11 @@ class TestCoverageHandler:
            python test_parser.py <name_of_function_you_will_test>
                                   make sure its the same as in step 2
     """
-    def __init__(self, function_name, expected_lines=20):
+    def __init__(self, function_name, expected_lines):
         self.function_name = function_name
         file_name = function_name + "_results.txt"
         self.path = os.path.join(os.getcwd(), file_name)
-        self.expected_lines = expected_lines
+        self.expected_lines = int(expected_lines)
 
     def test_hit(self, line_id):
         with open(self.path, "a+") as result_file:
@@ -39,7 +39,7 @@ class TestCoverageHandler:
 
 
 if __name__ == '__main__':
-    tch = TestCoverageHandler(sys.argv[1])
+    tch = TestCoverageHandler(sys.argv[1], sys.argv[2])
     process = subprocess.Popen("pytest", shell=True, stdout=subprocess.PIPE)
     process.wait()
     tch.report_results()
