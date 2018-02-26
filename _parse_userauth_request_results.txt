@@ -12,5 +12,5 @@ The following lines where hit running the pytest command
 5
 6
 Total lines hit: 11
-Expected lines: 20
-Total coverage is 0.55/1.0
+Expected lines: 26
+Total coverage is 0.423/1.0
