@@ -37,6 +37,9 @@ from paramiko.py3compat import u, byte_ord
 from paramiko.ssh_exception import SSHException, ProxyCommandFailure
 from paramiko.message import Message
 
+from test_parser import TestCoverageHandler
+tch = TestCoverageHandler("read_message", 15)
+
 
 def compute_hmac(key, message, digest_class):
     return HMAC(key, message, digest_class).digest()
@@ -425,25 +428,31 @@ class Packetizer (object):
         """
         header = self.read_all(self.__block_size_in, check_rekey=True)
         if self.__block_engine_in is not None:
+            tch.test_hit(1)
             header = self.__block_engine_in.update(header)
         if self.__dump_packets:
+            tch.test_hit(2)
             self._log(DEBUG, util.format_binary(header, 'IN: '))
         packet_size = struct.unpack('>I', header[:4])[0]
         # leftover contains decrypted bytes from the first block (after the
         # length field)
         leftover = header[4:]
         if (packet_size - len(leftover)) % self.__block_size_in != 0:
+            tch.test_hit(3)
             raise SSHException('Invalid packet blocking')
         buf = self.read_all(packet_size + self.__mac_size_in - len(leftover))
         packet = buf[:packet_size - len(leftover)]
         post_packet = buf[packet_size - len(leftover):]
         if self.__block_engine_in is not None:
+            tch.test_hit(4)
             packet = self.__block_engine_in.update(packet)
         if self.__dump_packets:
+            tch.test_hit(5)
             self._log(DEBUG, util.format_binary(packet, 'IN: '))
         packet = leftover + packet
 
         if self.__mac_size_in > 0:
+            tch.test_hit(6)
             mac = post_packet[:self.__mac_size_in]
             mac_payload = struct.pack(
                 '>II', self.__sequence_number_in, packet_size) + packet
@@ -452,11 +461,13 @@ class Packetizer (object):
                 mac_payload,
                 self.__mac_engine_in)[:self.__mac_size_in]
             if not util.constant_time_bytes_eq(my_mac, mac):
+                tch.test_hit(7)
                 raise SSHException('Mismatched MAC')
         padding = byte_ord(packet[0])
         payload = packet[1:packet_size - padding]
 
         if self.__dump_packets:
+            tch.test_hit(8)
             self._log(
                 DEBUG,
                 'Got payload ({} bytes, {} padding)'.format(
@@ -465,6 +476,7 @@ class Packetizer (object):
             )
 
         if self.__compress_engine_in is not None:
+            tch.test_hit(9)
             payload = self.__compress_engine_in(payload)
 
         msg = Message(payload[1:])
@@ -476,6 +488,7 @@ class Packetizer (object):
         self.__received_bytes += raw_packet_size
         self.__received_packets += 1
         if self.__need_rekey:
+            tch.test_hit(10)
             # we've asked to rekey -- give them some packets to comply before
             # dropping the connection
             self.__received_bytes_overflow += raw_packet_size
@@ -484,10 +497,12 @@ class Packetizer (object):
                     self.REKEY_PACKETS_OVERFLOW_MAX) or \
                (self.__received_bytes_overflow >=
                     self.REKEY_BYTES_OVERFLOW_MAX):
+                tch.test_hit(11)
                 raise SSHException(
                     'Remote transport is ignoring rekey requests')
         elif (self.__received_packets >= self.REKEY_PACKETS) or \
              (self.__received_bytes >= self.REKEY_BYTES):
+            tch.test_hit(12)
             # only ask once for rekeying
             err = "Rekeying (hit {} packets, {} bytes received)"
             self._log(DEBUG, err.format(
@@ -499,10 +514,13 @@ class Packetizer (object):
 
         cmd = byte_ord(payload[0])
         if cmd in MSG_NAMES:
+            tch.test_hit(13)
             cmd_name = MSG_NAMES[cmd]
         else:
+            tch.test_hit(14)
             cmd_name = '${:x}'.format(cmd)
         if self.__dump_packets:
+            tch.test_hit(15)
             self._log(
                 DEBUG,
                 'Read packet <{}>, length {}'.format(cmd_name, len(payload))
