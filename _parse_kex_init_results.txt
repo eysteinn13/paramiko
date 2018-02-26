@@ -1,0 +1,15 @@
+Results from function: _parse_kex_init
+The following lines where hit running the pytest command
+1
+11
+12
+14
+15
+2
+4
+5
+8
+9
+Total lines hit: 10
+Expected lines: 20
+Total coverage is 0.5/1.0

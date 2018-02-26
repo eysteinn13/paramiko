@@ -72,6 +72,8 @@ from paramiko.ssh_exception import (
     SSHException, BadAuthenticationType, ChannelException, ProxyCommandFailure,
 )
 from paramiko.util import retry_on_signal, ClosingContextManager, clamp_value
+from test_parser import TestCoverageHandler
+tch = TestCoverageHandler("_parse_kex_init", 16)
 
 
 # for thread cleanup
@@ -2121,21 +2123,25 @@ class Transport(threading.Thread, ClosingContextManager):
         # as a client, we pick the first item in our list that the server
         # supports.
         if self.server_mode:
+            tch.test_hit(1)
             agreed_kex = list(filter(
                 self._preferred_kex.__contains__,
                 kex_algo_list
             ))
         else:
+            tch.test_hit(2)
             agreed_kex = list(filter(
                 kex_algo_list.__contains__,
                 self._preferred_kex
             ))
         if len(agreed_kex) == 0:
+            tch.test_hit(3)
             raise SSHException('Incompatible ssh peer (no acceptable kex algorithm)') # noqa
         self.kex_engine = self._kex_info[agreed_kex[0]](self)
         self._log(DEBUG, "Kex agreed: {}".format(agreed_kex[0]))
 
         if self.server_mode:
+            tch.test_hit(4)
             available_server_keys = list(filter(
                 list(self.server_key_dict.keys()).__contains__,
                 self._preferred_keys
@@ -2144,19 +2150,23 @@ class Transport(threading.Thread, ClosingContextManager):
                 available_server_keys.__contains__, server_key_algo_list
             ))
         else:
+            tch.test_hit(5)
             agreed_keys = list(filter(
                 server_key_algo_list.__contains__, self._preferred_keys
             ))
         if len(agreed_keys) == 0:
+            tch.test_hit(6)
             raise SSHException('Incompatible ssh peer (no acceptable host key)') # noqa
         self.host_key_type = agreed_keys[0]
         if self.server_mode and (self.get_server_key() is None):
+            tch.test_hit(7)
             raise SSHException('Incompatible ssh peer (can\'t match requested host key type)') # noqa
         self._log_agreement(
             'HostKey', agreed_keys[0], agreed_keys[0]
         )
 
         if self.server_mode:
+            tch.test_hit(8)
             agreed_local_ciphers = list(filter(
                 self._preferred_ciphers.__contains__,
                 server_encrypt_algo_list
@@ -2166,6 +2176,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 client_encrypt_algo_list
             ))
         else:
+            tch.test_hit(9)
             agreed_local_ciphers = list(filter(
                 client_encrypt_algo_list.__contains__,
                 self._preferred_ciphers
@@ -2175,6 +2186,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._preferred_ciphers
             ))
         if len(agreed_local_ciphers) == 0 or len(agreed_remote_ciphers) == 0:
+            tch.test_hit(10)
             raise SSHException('Incompatible ssh server (no acceptable ciphers)') # noqa
         self.local_cipher = agreed_local_ciphers[0]
         self.remote_cipher = agreed_remote_ciphers[0]
@@ -2183,6 +2195,7 @@ class Transport(threading.Thread, ClosingContextManager):
         )
 
         if self.server_mode:
+            tch.test_hit(11)
             agreed_remote_macs = list(filter(
                 self._preferred_macs.__contains__, client_mac_algo_list
             ))
@@ -2190,6 +2203,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._preferred_macs.__contains__, server_mac_algo_list
             ))
         else:
+            tch.test_hit(12)
             agreed_local_macs = list(filter(
                 client_mac_algo_list.__contains__, self._preferred_macs
             ))
@@ -2197,6 +2211,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 server_mac_algo_list.__contains__, self._preferred_macs
             ))
         if (len(agreed_local_macs) == 0) or (len(agreed_remote_macs) == 0):
+            tch.test_hit(13)
             raise SSHException('Incompatible ssh server (no acceptable macs)')
         self.local_mac = agreed_local_macs[0]
         self.remote_mac = agreed_remote_macs[0]
@@ -2205,6 +2220,7 @@ class Transport(threading.Thread, ClosingContextManager):
         )
 
         if self.server_mode:
+            tch.test_hit(14)
             agreed_remote_compression = list(filter(
                 self._preferred_compression.__contains__,
                 client_compress_algo_list
@@ -2214,6 +2230,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 server_compress_algo_list
             ))
         else:
+            tch.test_hit(15)
             agreed_local_compression = list(filter(
                 client_compress_algo_list.__contains__,
                 self._preferred_compression
@@ -2226,6 +2243,7 @@ class Transport(threading.Thread, ClosingContextManager):
             len(agreed_local_compression) == 0 or
             len(agreed_remote_compression) == 0
         ):
+            tch.test_hit(16)
             msg = 'Incompatible ssh server (no acceptable compression) {!r} {!r} {!r}' # noqa
             raise SSHException(msg.format(
                 agreed_local_compression, agreed_remote_compression,
