@@ -30,6 +30,8 @@ import paramiko.util
 from paramiko.util import lookup_ssh_host_config as host_config, safe_string
 from paramiko.py3compat import StringIO, byte_ord, b
 
+from paramiko.primes import _roll_random
+
 
 # Note some lines in this configuration have trailing spaces on purpose
 test_config_file = """\
@@ -530,3 +532,22 @@ Host *
             config.lookup('some-random-host')['proxycommand'],
             'default-proxy'
         )
+
+    def test_roll_random(self):
+        """
+        Verify that numbers returned by _roll_random are within range [0, n-1]
+        """
+        for i in range(1000):
+            num = _roll_random(1000)
+            self.assertTrue(num >= 0)
+            self.assertTrue(num < 1000)
+
+    def test_constant_time_bytes_eq_false(self):
+        a = b'\x43\x91'
+        b = b'\x43\x91\x43\x91'
+        self.assertFalse(paramiko.util.constant_time_bytes_eq(a, b))
+
+    def test_constant_time_bytes_eq_true(self):
+        a = b'\x43\x91'
+        b = b'\x43\x91'
+        self.assertTrue(paramiko.util.constant_time_bytes_eq(a, b))

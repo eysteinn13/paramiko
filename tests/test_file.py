@@ -69,6 +69,8 @@ class BufferedFileTest (unittest.TestCase):
             pass
         f.close()
 
+
+
     def test_2_readline(self):
         f = LoopbackFile('r+U')
         f.write(b'First line.\nSecond line.\r\nThird line.\n' +
@@ -188,6 +190,23 @@ class BufferedFileTest (unittest.TestCase):
         self.assertEqual(data, b'hello')
         f.close()
 
+        """
+        Verify that writeline writes correctly
+        """
+    def test_writelines(self):
+        f = LoopbackFile('r+')
+        list1 = ['test1', 'test2', 'test3', 'test4'];
+        f.writelines(list1)
+        self.assertEqual(len(f.readlines()),1)
+        f.writelines(list1)
+        self.assertEqual(f.readlines()[0],'test1test2test3test4')
+        f.close()
+
+    def test_file_not_open(self):
+        f = LoopbackFile('r')
+        f.close()
+        self.assertRaises(IOError, f.readline)
+        
     def test_write_bad_type(self):
         with LoopbackFile('wb') as f:
             self.assertRaises(TypeError, f.write, object())

@@ -103,7 +103,7 @@ class HostKeysTest (unittest.TestCase):
         for key in hostdict:
             i += 1
         self.assertEqual(2, i)
-        
+
     def test_4_dict_set(self):
         hostdict = paramiko.HostKeys('hostfile.temp')
         key = paramiko.RSAKey(data=decodebytes(keyblob))
@@ -114,7 +114,7 @@ class HostKeysTest (unittest.TestCase):
         }
         hostdict['fake.example.com'] = {}
         hostdict['fake.example.com']['ssh-rsa'] = key
-        
+
         self.assertEqual(3, len(hostdict))
         self.assertEqual(2, len(list(hostdict.values())[0]))
         self.assertEqual(1, len(list(hostdict.values())[1]))
@@ -153,3 +153,12 @@ class HostKeysTest (unittest.TestCase):
         x = hostdict['foo.example.com']
         fp = hexlify(x['ssh-rsa'].get_fingerprint()).upper()
         self.assertEqual(b'7EC91BB336CB6D810B124B1353C32396', fp)
+        
+    def test_clear(self):
+        hostdict = paramiko.HostKeys()
+        hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
+        key = paramiko.RSAKey(data=decodebytes(keyblob))
+        hostdict.add(hh, 'ssh-rsa', key)
+        self.assertEqual(1, len(list(hostdict)))
+        hostdict.clear()
+        self.assertEqual(0, len(list(hostdict)))
