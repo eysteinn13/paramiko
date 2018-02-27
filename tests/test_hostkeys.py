@@ -64,6 +64,13 @@ class HostKeysTest (unittest.TestCase):
         os.unlink('hostfile.temp')
 
     def test_1_load(self):
+        try:
+            badhost = paramiko.HostKeys('badfile.temp')
+        except IOError:
+            pass
+        else:
+            assert False, "Attempted to open a file which does not exist"
+
         hostdict = paramiko.HostKeys('hostfile.temp')
         self.assertEqual(2, len(hostdict))
         self.assertEqual(1, len(list(hostdict.values())[0]))
@@ -129,6 +136,24 @@ class HostKeysTest (unittest.TestCase):
         else:
             assert False, "Entry was not deleted from HostKeys on delitem!"
 
+        """
+        Adds an additional key to hostdict and saves the keys to file
+        Then reads the keys from file into hostdict2
+        We then assure that the correct key were written to the file
+        """
+    def test_save(self):
+        hostdict = paramiko.HostKeys('hostfile.temp')
+        self.assertEqual(2,len(hostdict))
+        hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
+        key = paramiko.RSAKey(data=decodebytes(keyblob))
+        hostdict.add(hh, 'ssh-rsa', key)
+        hostdict.save('hostfile.temp')
+        hostdict2 = paramiko.HostKeys('hostfile.temp')
+        self.assertEqual(3,len(hostdict2))
+        x = hostdict['foo.example.com']
+        fp = hexlify(x['ssh-rsa'].get_fingerprint()).upper()
+        self.assertEqual(b'7EC91BB336CB6D810B124B1353C32396', fp)
+        
     def test_clear(self):
         hostdict = paramiko.HostKeys()
         hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
