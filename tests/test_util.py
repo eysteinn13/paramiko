@@ -541,3 +541,13 @@ Host *
             num = _roll_random(1000)
             self.assertTrue(num >= 0)
             self.assertTrue(num < 1000)
+
+    def test_constant_time_bytes_eq_false(self):
+        a = b'\x43\x91'
+        b = b'\x43\x91\x43\x91'
+        self.assertFalse(paramiko.util.constant_time_bytes_eq(a, b))
+
+    def test_constant_time_bytes_eq_true(self):
+        a = b'\x43\x91'
+        b = b'\x43\x91'
+        self.assertTrue(paramiko.util.constant_time_bytes_eq(a, b))
