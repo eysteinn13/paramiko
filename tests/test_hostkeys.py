@@ -136,6 +136,11 @@ class HostKeysTest (unittest.TestCase):
         else:
             assert False, "Entry was not deleted from HostKeys on delitem!"
 
+        """
+        Adds an additional key to hostdict and saves the keys to file
+        Then reads the keys from file into hostdict2
+        We then assure that the correct key were written to the file
+        """
     def test_save(self):
         hostdict = paramiko.HostKeys('hostfile.temp')
         self.assertEqual(2,len(hostdict))
