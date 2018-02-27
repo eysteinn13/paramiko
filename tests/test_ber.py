@@ -19,23 +19,37 @@
 Some unit tests for the BER encoder / decoder.
 """
 
-import pytest
+import unittest
 from paramiko.ber import ( BER, BERException )
 
-def test_encode_decode():
-    """
-    When decoding an encoded integer, the original integer should be returned
-    """
-    ber = BER()
-    ber.encode(1337)
-    decoded = ber.decode()
-    assert decoded == 1337
 
-def test_encode_decode_sequence():
-    """
-    When decoding an encoded list, the original list should be returned
-    """
-    sequence = [1, 2, 3, 4, 5]
-    encoded = BER.encode_sequence(sequence)
-    decoded = BER.decode_sequence(encoded)
-    assert decoded == sequence
+class BerTester(unittest.TestCase):
+
+    def testsomething(self):
+        """
+        Encode should return exception when used with string
+        """
+        ber = BER()
+        self.assertRaises(TypeError, ber.encode, "1337")
+
+
+    def test_encode_decode(self):
+        """
+        When decoding an encoded integer, the original integer should be returned
+        """
+        ber = BER()
+        ber.encode(1337)
+        decoded = ber.decode()
+        self.assertEqual(decoded, 1337)
+
+
+    def test_encode_decode_sequence(self):
+        """
+        When decoding an encoded list, the original list should be returned
+        """
+        sequence = [1, 2, 3, 4, 5]
+        encoded = BER.encode_sequence(sequence)
+        decoded = BER.decode_sequence(encoded)
+        self.assertEqual(decoded, sequence)
+
+
