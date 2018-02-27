@@ -25,7 +25,6 @@ from paramiko.ber import ( BER, BERException )
 def test_encode_decode():
     ber = BER()
     ber.encode(1337)
-    ber
     decoded = ber.decode()
     assert decoded == 1337
 
