@@ -23,12 +23,18 @@ import pytest
 from paramiko.ber import ( BER, BERException )
 
 def test_encode_decode():
+    """
+    When decoding an encoded integer, the original integer should be returned
+    """
     ber = BER()
     ber.encode(1337)
     decoded = ber.decode()
     assert decoded == 1337
 
 def test_encode_decode_sequence():
+    """
+    When decoding an encoded list, the original list should be returned
+    """
     sequence = [1, 2, 3, 4, 5]
     encoded = BER.encode_sequence(sequence)
     decoded = BER.decode_sequence(encoded)
