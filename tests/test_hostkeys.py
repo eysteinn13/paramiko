@@ -38,6 +38,14 @@ BGQ3GQ/Fc7SX6gkpXkwcZryoi4kNFhHu5LvHcZPdxXV1D+uTMfGS1eyd2Yz/DoNWXNAl8TI0cAsW\
 5ymME3bQ4J/k1IKxCtz/bAlAqFgKoc+EolMziDYqWIATtW0rYTJvzGAzTmMj80/QpsFH+Pc2M=
 """
 
+# Missing host url
+broken_hosts_file = """\
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA1PD6U2/TVxET6lkpKhOk5r\
+9q/kAYG6sP9f5zuUYP8i7FOFp/6ncCEbbtg/lB+A3iidyxoSWl+9jtoyyDOOVX4UIDV9G11Ml8om3\
+D+jrpI9cycZHqilK0HmxDeCuxbwyMuaCygU9gS2qoRvNLWZk70OpIKSSpBo0Wl3/XUmz9uhc=
+"""
+
+
 keyblob = b"""\
 AAAAB3NzaC1yc2EAAAABIwAAAIEA8bP1ZA7DCZDB9J0s50l31MBGQ3GQ/Fc7SX6gkpXkwcZryoi4k\
 NFhHu5LvHcZPdxXV1D+uTMfGS1eyd2Yz/DoNWXNAl8TI0cAsW5ymME3bQ4J/k1IKxCtz/bAlAqFgK\
@@ -59,6 +67,8 @@ class HostKeysTest (unittest.TestCase):
     def setUp(self):
         with open('hostfile.temp', 'w') as f:
             f.write(test_hosts_file)
+        with open('broken_hostfile.temp', 'w') as f:
+            f.write(broken_hosts_file)
 
     def tearDown(self):
         os.unlink('hostfile.temp')
@@ -135,6 +145,13 @@ class HostKeysTest (unittest.TestCase):
             pass # Good
         else:
             assert False, "Entry was not deleted from HostKeys on delitem!"
+
+    def test_wrong_number_of_fields(self):
+        """
+        hostdict should not have any entries if the number of fields is incorrect
+        """
+        hostdict = paramiko.HostKeys('broken_hostfile.temp')
+        self.assertEqual(0, len(hostdict))
 
         """
         Adds an additional key to hostdict and saves the keys to file
