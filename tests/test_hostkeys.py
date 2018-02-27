@@ -38,6 +38,14 @@ BGQ3GQ/Fc7SX6gkpXkwcZryoi4kNFhHu5LvHcZPdxXV1D+uTMfGS1eyd2Yz/DoNWXNAl8TI0cAsW\
 5ymME3bQ4J/k1IKxCtz/bAlAqFgKoc+EolMziDYqWIATtW0rYTJvzGAzTmMj80/QpsFH+Pc2M=
 """
 
+# Missing host url
+broken_hosts_file = """\
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEA1PD6U2/TVxET6lkpKhOk5r\
+9q/kAYG6sP9f5zuUYP8i7FOFp/6ncCEbbtg/lB+A3iidyxoSWl+9jtoyyDOOVX4UIDV9G11Ml8om3\
+D+jrpI9cycZHqilK0HmxDeCuxbwyMuaCygU9gS2qoRvNLWZk70OpIKSSpBo0Wl3/XUmz9uhc=
+"""
+
+
 keyblob = b"""\
 AAAAB3NzaC1yc2EAAAABIwAAAIEA8bP1ZA7DCZDB9J0s50l31MBGQ3GQ/Fc7SX6gkpXkwcZryoi4k\
 NFhHu5LvHcZPdxXV1D+uTMfGS1eyd2Yz/DoNWXNAl8TI0cAsW5ymME3bQ4J/k1IKxCtz/bAlAqFgK\
@@ -59,11 +67,20 @@ class HostKeysTest (unittest.TestCase):
     def setUp(self):
         with open('hostfile.temp', 'w') as f:
             f.write(test_hosts_file)
+        with open('broken_hostfile.temp', 'w') as f:
+            f.write(broken_hosts_file)
 
     def tearDown(self):
         os.unlink('hostfile.temp')
 
     def test_1_load(self):
+        try:
+            badhost = paramiko.HostKeys('badfile.temp')
+        except IOError:
+            pass
+        else:
+            assert False, "Attempted to open a file which does not exist"
+
         hostdict = paramiko.HostKeys('hostfile.temp')
         self.assertEqual(2, len(hostdict))
         self.assertEqual(1, len(list(hostdict.values())[0]))
@@ -96,7 +113,7 @@ class HostKeysTest (unittest.TestCase):
         for key in hostdict:
             i += 1
         self.assertEqual(2, i)
-        
+
     def test_4_dict_set(self):
         hostdict = paramiko.HostKeys('hostfile.temp')
         key = paramiko.RSAKey(data=decodebytes(keyblob))
@@ -107,7 +124,7 @@ class HostKeysTest (unittest.TestCase):
         }
         hostdict['fake.example.com'] = {}
         hostdict['fake.example.com']['ssh-rsa'] = key
-        
+
         self.assertEqual(3, len(hostdict))
         self.assertEqual(2, len(list(hostdict.values())[0]))
         self.assertEqual(1, len(list(hostdict.values())[1]))
@@ -128,3 +145,37 @@ class HostKeysTest (unittest.TestCase):
             pass # Good
         else:
             assert False, "Entry was not deleted from HostKeys on delitem!"
+
+    def test_wrong_number_of_fields(self):
+        """
+        hostdict should not have any entries if the number of fields is incorrect
+        """
+        hostdict = paramiko.HostKeys('broken_hostfile.temp')
+        self.assertEqual(0, len(hostdict))
+
+        """
+        Adds an additional key to hostdict and saves the keys to file
+        Then reads the keys from file into hostdict2
+        We then assure that the correct key were written to the file
+        """
+    def test_save(self):
+        hostdict = paramiko.HostKeys('hostfile.temp')
+        self.assertEqual(2,len(hostdict))
+        hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
+        key = paramiko.RSAKey(data=decodebytes(keyblob))
+        hostdict.add(hh, 'ssh-rsa', key)
+        hostdict.save('hostfile.temp')
+        hostdict2 = paramiko.HostKeys('hostfile.temp')
+        self.assertEqual(3,len(hostdict2))
+        x = hostdict['foo.example.com']
+        fp = hexlify(x['ssh-rsa'].get_fingerprint()).upper()
+        self.assertEqual(b'7EC91BB336CB6D810B124B1353C32396', fp)
+        
+    def test_clear(self):
+        hostdict = paramiko.HostKeys()
+        hh = '|1|BMsIC6cUIP2zBuXR3t2LRcJYjzM=|hpkJMysjTk/+zzUUzxQEa2ieq6c='
+        key = paramiko.RSAKey(data=decodebytes(keyblob))
+        hostdict.add(hh, 'ssh-rsa', key)
+        self.assertEqual(1, len(list(hostdict)))
+        hostdict.clear()
+        self.assertEqual(0, len(list(hostdict)))

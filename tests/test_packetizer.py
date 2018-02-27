@@ -29,9 +29,9 @@ from cryptography.hazmat.primitives.ciphers import algorithms, Cipher, modes
 
 from paramiko import Message, Packetizer, util
 from paramiko.common import byte_chr, zero_byte
+from paramiko.ssh_exception import SSHException
 
 from .loop import LoopSocket
-
 
 x55 = byte_chr(0x55)
 x1f = byte_chr(0x1f)
@@ -140,3 +140,30 @@ class PacketizerTest (unittest.TestCase):
             return decorator
         send = timeout()(p.send_message)
         self.assertRaises(EOFError, send, m)
+
+    # assert that the Packetizer raises an SSHException when receiving mangled input
+    def test_4_read_exception(self):
+        rsock = LoopSocket()
+        wsock = LoopSocket()
+        rsock.link(wsock)
+        p = Packetizer(rsock)
+        p.set_log(util.get_logger('paramiko.transport'))
+        p.set_hexdump(True)
+        decryptor = Cipher(
+            algorithms.AES(zero_byte * 16),
+            modes.CBC(x55 * 16),
+            backend=default_backend()
+        ).decryptor()
+        p.set_inbound_cipher(decryptor, 16, sha1, 12, x1f * 20)
+        wsock.send(b'\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43')
+        self.assertRaises(SSHException, p.read_message)
+
+    def test_5_closed(self):
+        rsock = LoopSocket()
+        wsock = LoopSocket()
+        rsock.link(wsock)
+        p = Packetizer(wsock)
+
+        self.assertFalse(p.closed)
+        p.close()
+        self.assertTrue(p.closed)
