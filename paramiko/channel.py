@@ -1037,91 +1037,129 @@ class Channel (ClosingContextManager):
         finally:
             self.lock.release()
 
-    def _handle_request(self, m):
-        key = m.get_text()
-        want_reply = m.get_boolean()
+    def _exit_status(self, m):
+        self.exit_status = m.get_int()
+        self.status_event.set()
+        return True
+
+    def _check_server_status(self):
         server = self.transport.server_object
-        ok = False
-        if key == 'exit-status':
-            self.exit_status = m.get_int()
-            self.status_event.set()
-            ok = True
-        elif key == 'xon-xoff':
-            # ignore
-            ok = True
-        elif key == 'pty-req':
+        if server is None:
+            return False
+        else:
+            return True
+
+    def _handle_pty_req(self, m):
+        server = self.transport.server_object
+        if self._check_server_status():
             term = m.get_string()
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
             pixelheight = m.get_int()
             modes = m.get_string()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_pty_request(
-                    self,
-                    term,
-                    width,
-                    height,
-                    pixelwidth,
-                    pixelheight,
-                    modes
-                )
-        elif key == 'shell':
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_shell_request(self)
-        elif key == 'env':
+            return server.check_channel_pty_request(self, term, width, height, pixelwidth, pixelheight, modes)
+        else:
+            return False
+        
+    def _handle_shell(self, m):
+        server = self.transport.server_object
+        if self._check_server_status():
+            return server.check_channel_shell_request(self)
+        else:
+            return False
+
+    def _handle_env(self,m):
+        server = self.transport.server_object
+        if self._check_server_status():
             name = m.get_string()
             value = m.get_string()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_env_request(self, name, value)
-        elif key == 'exec':
+            return server.check_channel_env_request(self, name, value)
+        else:
+            return False
+
+    def _handle_exec(self, m):
+        server = self.transport.server_object
+        if self._check_server_status():
             cmd = m.get_string()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_exec_request(self, cmd)
-        elif key == 'subsystem':
+            return server.check_channel_exec_request(self, cmd)
+        else:
+            return False
+
+    def _handle_subsystem(self,m):
+        server = self.transport.server_object
+        if self._check_server_status():
             name = m.get_text()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_subsystem_request(self, name)
-        elif key == 'window-change':
+            return server.check_channel_subsystem_request(self, name)
+        else:
+            return False
+
+
+    def _handle_window_change(self,m):
+        server = self.transport.server_object
+        if self._check_server_status():
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
             pixelheight = m.get_int()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_window_change_request(
-                    self, width, height, pixelwidth, pixelheight)
-        elif key == 'x11-req':
+            return server.check_channel_window_change_request(self, width, height, pixelwidth, pixelheight)
+        else:
+            return False
+
+
+    def _handle_x11(self,m):
+        server = self.transport.server_object
+        if self._check_server_status():
             single_connection = m.get_boolean()
             auth_proto = m.get_text()
             auth_cookie = m.get_binary()
             screen_number = m.get_int()
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_x11_request(
-                    self,
-                    single_connection,
-                    auth_proto,
-                    auth_cookie,
-                    screen_number
-                )
+            return server.check_channel_x11_request(self, single_connection, auth_proto, auth_cookie, screen_number)
+        else:
+            return False
+
+    def _handle_auth_agent(self,m):
+        server = self.transport.server_object
+        if self._check_server_status():
+            return server.check_channel_forward_agent_request(self)
+        else:
+            return False
+
+
+    def _handle_request(self, m):
+        key = m.get_text()
+        want_reply = m.get_boolean()
+        server = self.transport.server_object
+        ok = False
+        if key == 'exit-status':
+            ok = self._exit_status(m)
+        
+        elif key == 'xon-xoff':
+            ok = True
+        
+        elif key == 'pty-req':
+            ok = self._handle_pty_req(m)
+
+        elif key == 'shell':
+            ok = self._handle_shell(m)
+        
+        elif key == 'env':
+            ok = self._handle_env(m)
+        
+        elif key == 'exec':
+            ok = self._handle_exec(m)
+        
+        elif key == 'subsystem':
+            ok = self._handle_subsystem(m)
+        
+        elif key == 'window-change':
+            ok = self._handle_window_change(m)
+            
+        elif key == 'x11-req':
+            ok = self._handle_x11(m)
+
         elif key == 'auth-agent-req@openssh.com':
-            if server is None:
-                ok = False
-            else:
-                ok = server.check_channel_forward_agent_request(self)
+            ok = self._handle_auth_agent(m)
         else:
             self._log(DEBUG, 'Unhandled channel request "{}"'.format(key))
             ok = False
