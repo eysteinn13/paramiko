@@ -157,3 +157,13 @@ class PacketizerTest (unittest.TestCase):
         p.set_inbound_cipher(decryptor, 16, sha1, 12, x1f * 20)
         wsock.send(b'\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43\x43')
         self.assertRaises(SSHException, p.read_message)
+
+    def test_5_closed(self):
+        rsock = LoopSocket()
+        wsock = LoopSocket()
+        rsock.link(wsock)
+        p = Packetizer(wsock)
+
+        self.assertFalse(p.closed)
+        p.close()
+        self.assertTrue(p.closed)
