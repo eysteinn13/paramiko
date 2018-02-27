@@ -22,10 +22,12 @@ Unit tests for Agent
 
 import unittest
 
-from paramiko.agent import (AgentClientProxy, AgentSSH)
+from paramiko.agent import (AgentClientProxy, 
+                            AgentSSH)
 
-def test_connect():
-    agentSSH = AgentSSH()
-    agentCL = AgentClientProxy(agentSSH)
-    agentCL.connect()
-    assert agentCL._conn != None
+class AgentTest(unittest.TestCase)
+    def test_connect():
+        agentSSH = AgentSSH()
+        agentCL = AgentClientProxy(agentSSH)
+        agentCL.connect()
+        this.assertEquals(None, agentCL._conn)
