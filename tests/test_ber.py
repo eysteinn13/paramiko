@@ -25,7 +25,7 @@ from paramiko.ber import ( BER, BERException )
 
 class BerTester(unittest.TestCase):
 
-    def testsomething(self):
+    def test_encode_with_illegal_types(self):
         """
         Encode should return exception when used with string
         """
