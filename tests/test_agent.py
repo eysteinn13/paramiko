@@ -25,9 +25,8 @@ import unittest
 from paramiko.agent import (AgentClientProxy, 
                             AgentSSH)
 
-class AgentTest(unittest.TestCase)
-    def test_connect():
+class AgentTest(unittest.TestCase):
+    def test_connect(self):
         agentSSH = AgentSSH()
         agentCL = AgentClientProxy(agentSSH)
-        agentCL.connect()
-        this.assertEquals(None, agentCL._conn)
+        self.assertEquals(None, agentCL.connect())
