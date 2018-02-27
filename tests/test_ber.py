@@ -27,10 +27,19 @@ class BerTester(unittest.TestCase):
 
     def test_encode_with_illegal_types(self):
         """
-        Encode should return exception when used with string
+        Encode should raise exception when used with string
         """
         ber = BER()
         self.assertRaises(TypeError, ber.encode, "1337")
+
+    def test_encode_works_on_lists_directly(self):
+        """
+        Encode should raise exception when used with string
+        """
+        ber = BER()
+        original_list = [1, 2, 3, 4, 5]
+        ber.encode(original_list)
+        self.assertEqual(ber.decode(), original_list)
 
 
     def test_encode_decode(self):
