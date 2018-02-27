@@ -202,6 +202,11 @@ class BufferedFileTest (unittest.TestCase):
         self.assertEqual(f.readlines()[0],'test1test2test3test4')
         f.close()
 
+    def test_file_not_open(self):
+        f = LoopbackFile('r')
+        f.close()
+        self.assertRaises(IOError, f.readline)
+        
     def test_write_bad_type(self):
         with LoopbackFile('wb') as f:
             self.assertRaises(TypeError, f.write, object())
