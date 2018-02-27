@@ -537,6 +537,7 @@ Host *
         """
         Verify that numbers returned by _roll_random are within range [0, n-1]
         """
-        num = _roll_random(1000)
-        self.assertTrue(num >= 0)
-        self.assertTrue(num < 1000)
+        for i in range(1000):
+            num = _roll_random(1000)
+            self.assertTrue(num >= 0)
+            self.assertTrue(num < 1000)
