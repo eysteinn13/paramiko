@@ -73,6 +73,10 @@ class HostKeysTest (unittest.TestCase):
     def tearDown(self):
         os.unlink('hostfile.temp')
 
+        """
+        Tests the load function of known ssh keys.
+        The first assertion should throw an IOError due to trying to load a non-existing file
+        """
     def test_1_load(self):
         try:
             badhost = paramiko.HostKeys('badfile.temp')
