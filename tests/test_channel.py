@@ -26,10 +26,16 @@ from paramiko.channel import Channel
 
 class ChannelTest(unittest.TestCase):
     def test_get_id(self):
+        """
+        get_id should return the id of the channel, which is set by the constructor
+        """
         channel = Channel(1)
         self.assertEquals(1, channel.get_id())
 
     def test_get_name(self):
+        """
+        get_name should return the name of the channel, which is set by the constructor and by set_name
+        """
         channel = Channel(1)
         self.assertEquals("1", channel.get_name())
         channel.set_name("abc")
