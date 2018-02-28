@@ -72,8 +72,7 @@ from paramiko.ssh_exception import (
     SSHException, BadAuthenticationType, ChannelException, ProxyCommandFailure,
 )
 from paramiko.util import retry_on_signal, ClosingContextManager, clamp_value
-from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("run", 32)
+from test_parser import test_hit
 
 # for thread cleanup
 _active_threads = []
@@ -1847,10 +1846,10 @@ class Transport(threading.Thread, ClosingContextManager):
         _active_threads.append(self)
         tid = hex(long(id(self)) & xffffffff)
         if self.server_mode:
-            tch.test_hit(1)
+            test_hit(1, "run", 32)
             self._log(DEBUG, 'starting thread (server mode): {}'.format(tid))
         else:
-            tch.test_hit(2)
+            test_hit(2, "run", 32)
             self._log(DEBUG, 'starting thread (client mode): {}'.format(tid))
         try:
             try:
@@ -1869,65 +1868,65 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._expect_packet(MSG_KEXINIT)
 
                 while self.active:
-                    tch.test_hit(3)
+                    test_hit(3, "run", 32)
                     if self.packetizer.need_rekey() and not self.in_kex:
                         self._send_kex_init()
                     try:
                         ptype, m = self.packetizer.read_message()
                     except NeedRekeyException:
-                        tch.test_hit(4)
+                        test_hit(4, "run", 32)
                         continue
                     if ptype == MSG_IGNORE:
-                        tch.test_hit(5)
+                        test_hit(5, "run", 32)
                         continue
                     elif ptype == MSG_DISCONNECT:
-                        tch.test_hit(6)
+                        test_hit(6, "run", 32)
                         self._parse_disconnect(m)
                         break
                     elif ptype == MSG_DEBUG:
-                        tch.test_hit(7)
+                        test_hit(7, "run", 32)
                         self._parse_debug(m)
                         continue
                     if len(self._expected_packet) > 0:
-                        tch.test_hit(8)
+                        test_hit(8, "run", 32)
                         if ptype not in self._expected_packet:
-                            tch.test_hit(9)
+                            test_hit(9, "run", 32)
                             raise SSHException('Expecting packet from {!r}, got {:d}'.format(self._expected_packet, ptype)) # noqa
                         self._expected_packet = tuple()
                         if (ptype >= 30) and (ptype <= 41):
-                            tch.test_hit(10)
+                            test_hit(10, "run", 32)
                             self.kex_engine.parse_next(ptype, m)
                             continue
 
                     if ptype in self._handler_table:
-                        tch.test_hit(11)
+                        test_hit(11, "run", 32)
                         self._handler_table[ptype](self, m)
                     elif ptype in self._channel_handler_table:
-                        tch.test_hit(12)
+                        test_hit(12, "run", 32)
                         chanid = m.get_int()
                         chan = self._channels.get(chanid)
                         if chan is not None:
-                            tch.test_hit(13)
+                            test_hit(13, "run", 32)
                             self._channel_handler_table[ptype](chan, m)
                         elif chanid in self.channels_seen:
-                            tch.test_hit(14)
+                            test_hit(14, "run", 32)
                             self._log(DEBUG, 'Ignoring message for dead channel {:d}'.format(chanid)) # noqa
                         else:
-                            tch.test_hit(15)
+                            test_hit(15, "run", 32)
                             self._log(ERROR, 'Channel request for unknown channel {:d}'.format(chanid)) # noqa
                             break
                     elif (
                         self.auth_handler is not None and
                         ptype in self.auth_handler._handler_table
                     ):
-                        tch.test_hit(16)
+                        test_hit(16, "run", 32)
                         handler = self.auth_handler._handler_table[ptype]
                         handler(self.auth_handler, m)
                         if len(self._expected_packet) > 0:
-                            tch.test_hit(17)
+                            test_hit(17, "run", 32)
                             continue
                     else:
-                        tch.test_hit(18)
+                        test_hit(18, "run", 32)
                         err = 'Oops, unhandled type {:d}'.format(ptype)
                         self._log(WARNING, err)
                         msg = Message()
@@ -1936,50 +1935,50 @@ class Transport(threading.Thread, ClosingContextManager):
                         self._send_message(msg)
                     self.packetizer.complete_handshake()
             except SSHException as e:
-                tch.test_hit(19)
+                test_hit(19, "run", 32)
                 self._log(ERROR, 'Exception: ' + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
             except EOFError as e:
-                tch.test_hit(20)
+                test_hit(20, "run", 32)
                 self._log(DEBUG, 'EOF in transport thread')
                 self.saved_exception = e
             except socket.error as e:
-                tch.test_hit(21)
+                test_hit(21, "run", 32)
                 if type(e.args) is tuple:
-                    tch.test_hit(22)
+                    test_hit(22, "run", 32)
                     if e.args:
-                        tch.test_hit(23)
+                        test_hit(23, "run", 32)
                         emsg = '{} ({:d})'.format(e.args[1], e.args[0])
                     else:  # empty tuple, e.g. socket.timeout
-                        tch.test_hit(24)
+                        test_hit(24, "run", 32)
                         emsg = str(e) or repr(e)
                 else:
-                    tch.test_hit(25)
+                    test_hit(25, "run", 32)
                     emsg = e.args
                 self._log(ERROR, 'Socket exception: ' + emsg)
                 self.saved_exception = e
             except Exception as e:
-                tch.test_hit(26)
+                test_hit(26, "run", 32)
                 self._log(ERROR, 'Unknown exception: ' + str(e))
                 self._log(ERROR, util.tb_strings())
                 self.saved_exception = e
             _active_threads.remove(self)
             for chan in list(self._channels.values()):
-                tch.test_hit(27)
+                test_hit(27, "run", 32)
                 chan._unlink()
             if self.active:
-                tch.test_hit(28)
+                test_hit(28, "run", 32)
                 self.active = False
                 self.packetizer.close()
                 if self.completion_event is not None:
-                    tch.test_hit(29)
+                    test_hit(29, "run", 32)
                     self.completion_event.set()
                 if self.auth_handler is not None:
-                    tch.test_hit(30)
+                    test_hit(30, "run", 32)
                     self.auth_handler.abort()
                 for event in self.channel_events.values():
-                    tch.test_hit(31)
+                    test_hit(31, "run", 32)
                     event.set()
                 try:
                     self.lock.acquire()
@@ -1988,7 +1987,7 @@ class Transport(threading.Thread, ClosingContextManager):
                     self.lock.release()
             self.sock.close()
         except:
-            tch.test_hit(32)
+            test_hit(32, "run", 32)
             # Don't raise spurious 'NoneType has no attribute X' errors when we
             # wake up during interpreter shutdown. Or rather -- raise
             # everything *if* sys.modules (used as a convenient sentinel)
@@ -2154,25 +2153,25 @@ class Transport(threading.Thread, ClosingContextManager):
         # as a client, we pick the first item in our list that the server
         # supports.
         if self.server_mode:
-            tch.test_hit(1)
+            test_hit(1, "parse_kex_init", 16)
             agreed_kex = list(filter(
                 self._preferred_kex.__contains__,
                 kex_algo_list
             ))
         else:
-            tch.test_hit(2)
+            test_hit(2, "parse_kex_init", 16)
             agreed_kex = list(filter(
                 kex_algo_list.__contains__,
                 self._preferred_kex
             ))
         if len(agreed_kex) == 0:
-            tch.test_hit(3)
+            test_hit(3, "parse_kex_init", 16)
             raise SSHException('Incompatible ssh peer (no acceptable kex algorithm)') # noqa
         self.kex_engine = self._kex_info[agreed_kex[0]](self)
         self._log(DEBUG, "Kex agreed: {}".format(agreed_kex[0]))
 
         if self.server_mode:
-            tch.test_hit(4)
+            test_hit(4, "parse_kex_init", 16)
             available_server_keys = list(filter(
                 list(self.server_key_dict.keys()).__contains__,
                 self._preferred_keys
@@ -2181,23 +2180,23 @@ class Transport(threading.Thread, ClosingContextManager):
                 available_server_keys.__contains__, server_key_algo_list
             ))
         else:
-            tch.test_hit(5)
+            test_hit(5, "parse_kex_init", 16)
             agreed_keys = list(filter(
                 server_key_algo_list.__contains__, self._preferred_keys
             ))
         if len(agreed_keys) == 0:
-            tch.test_hit(6)
+            test_hit(6, "parse_kex_init", 16)
             raise SSHException('Incompatible ssh peer (no acceptable host key)') # noqa
         self.host_key_type = agreed_keys[0]
         if self.server_mode and (self.get_server_key() is None):
-            tch.test_hit(7)
-            raise SSHException('Incompatible ssh peer (can\'t match requested host key type)') # noqa
+            test_hit(7, "parse_kex_init", 16)
+            raise SSHException('Incompatible ssh peer (can\'t marequested host key , "parse_kex_initt, 16ype)') # noqa
         self._log_agreement(
             'HostKey', agreed_keys[0], agreed_keys[0]
         )
 
         if self.server_mode:
-            tch.test_hit(8)
+            test_hit(8, "parse_kex_init", 16)
             agreed_local_ciphers = list(filter(
                 self._preferred_ciphers.__contains__,
                 server_encrypt_algo_list
@@ -2207,7 +2206,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 client_encrypt_algo_list
             ))
         else:
-            tch.test_hit(9)
+            test_hit(9, "parse_kex_init", 16)
             agreed_local_ciphers = list(filter(
                 client_encrypt_algo_list.__contains__,
                 self._preferred_ciphers
@@ -2217,7 +2216,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._preferred_ciphers
             ))
         if len(agreed_local_ciphers) == 0 or len(agreed_remote_ciphers) == 0:
-            tch.test_hit(10)
+            test_hit(10, "parse_kex_init", 16)
             raise SSHException('Incompatible ssh server (no acceptable ciphers)') # noqa
         self.local_cipher = agreed_local_ciphers[0]
         self.remote_cipher = agreed_remote_ciphers[0]
@@ -2226,7 +2225,7 @@ class Transport(threading.Thread, ClosingContextManager):
         )
 
         if self.server_mode:
-            tch.test_hit(11)
+            test_hit(11, "parse_kex_init", 16)
             agreed_remote_macs = list(filter(
                 self._preferred_macs.__contains__, client_mac_algo_list
             ))
@@ -2234,7 +2233,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 self._preferred_macs.__contains__, server_mac_algo_list
             ))
         else:
-            tch.test_hit(12)
+            test_hit(12, "parse_kex_init", 16)
             agreed_local_macs = list(filter(
                 client_mac_algo_list.__contains__, self._preferred_macs
             ))
@@ -2242,7 +2241,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 server_mac_algo_list.__contains__, self._preferred_macs
             ))
         if (len(agreed_local_macs) == 0) or (len(agreed_remote_macs) == 0):
-            tch.test_hit(13)
+            test_hit(13, "parse_kex_init", 16)
             raise SSHException('Incompatible ssh server (no acceptable macs)')
         self.local_mac = agreed_local_macs[0]
         self.remote_mac = agreed_remote_macs[0]
@@ -2251,7 +2250,7 @@ class Transport(threading.Thread, ClosingContextManager):
         )
 
         if self.server_mode:
-            tch.test_hit(14)
+            test_hit(14, "parse_kex_init", 16)
             agreed_remote_compression = list(filter(
                 self._preferred_compression.__contains__,
                 client_compress_algo_list
@@ -2261,7 +2260,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 server_compress_algo_list
             ))
         else:
-            tch.test_hit(15)
+            test_hit(15, "parse_kex_init", 16)
             agreed_local_compression = list(filter(
                 client_compress_algo_list.__contains__,
                 self._preferred_compression
@@ -2274,7 +2273,7 @@ class Transport(threading.Thread, ClosingContextManager):
             len(agreed_local_compression) == 0 or
             len(agreed_remote_compression) == 0
         ):
-            tch.test_hit(16)
+            test_hit(16, "parse_kex_init", 16)
             msg = 'Incompatible ssh server (no acceptable compression) {!r} {!r} {!r}' # noqa
             raise SSHException(msg.format(
                 agreed_local_compression, agreed_remote_compression,
@@ -2523,17 +2522,17 @@ class Transport(threading.Thread, ClosingContextManager):
             kind == 'auth-agent@openssh.com' and
             self._forward_agent_handler is not None
         ):
-            tch.test_hit(1)
+            test_hit(1, "parse_channel_open", 23)
             self._log(DEBUG, 'Incoming forward agent connection')
             self.lock.acquire()
             try:
-                tch.test_hit(2)
+                test_hit(2, "parse_channel_open", 23)
                 my_chanid = self._next_channel()
             finally:
-                tch.test_hit(3)
+                test_hit(3, "parse_channel_open", 23)
                 self.lock.release()
         elif (kind == 'x11') and (self._x11_handler is not None):
-            tch.test_hit(4)
+            test_hit(4, "parse_channel_open", 23)
             origin_addr = m.get_text()
             origin_port = m.get_int()
             self._log(
@@ -2544,13 +2543,13 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self.lock.acquire()
             try:
-                tch.test_hit(5)
+                test_hit(5, "parse_channel_open", 23)
                 my_chanid = self._next_channel()
             finally:
-                tch.test_hit(6)
+                test_hit(6, "parse_channel_open", 23)
                 self.lock.release()
         elif (kind == 'forwarded-tcpip') and (self._tcp_handler is not None):
-            tch.test_hit(7)
+            test_hit(7, "parse_channel_open", 23)
             server_addr = m.get_text()
             server_port = m.get_int()
             origin_addr = m.get_text()
@@ -2563,29 +2562,29 @@ class Transport(threading.Thread, ClosingContextManager):
             )
             self.lock.acquire()
             try:
-                tch.test_hit(8)
+                test_hit(8, "parse_channel_open", 23)
                 my_chanid = self._next_channel()
             finally:
-                tch.test_hit(9)
+                test_hit(9, "parse_channel_open", 23)
                 self.lock.release()
         elif not self.server_mode:
-            tch.test_hit(10)
+            test_hit(10, "parse_channel_open", 23)
             self._log(
                 DEBUG,
                 'Rejecting "{}" channel request from server.'.format(kind))
             reject = True
             reason = OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
         else:
-            tch.test_hit(11)
+            test_hit(11, "parse_channel_open", 23)
             self.lock.acquire()
             try:
-                tch.test_hit(12)
+                test_hit(12, "parse_channel_open", 23)
                 my_chanid = self._next_channel()
             finally:
-                tch.test_hit(13)
+                test_hit(13, "parse_channel_open", 23)
                 self.lock.release()
             if kind == 'direct-tcpip':
-                tch.test_hit(14)
+                test_hit(14, "parse_channel_open", 23)
                 # handle direct-tcpip requests coming from the client
                 dest_addr = m.get_text()
                 dest_port = m.get_int()
@@ -2597,17 +2596,17 @@ class Transport(threading.Thread, ClosingContextManager):
                     (dest_addr, dest_port)
                 )
             else:
-                tch.test_hit(15)
+                test_hit(15, "parse_channel_open", 23)
                 reason = self.server_object.check_channel_request(
                     kind, my_chanid)
             if reason != OPEN_SUCCEEDED:
-                tch.test_hit(16)
+                test_hit(16, "parse_channel_open", 23)
                 self._log(
                     DEBUG,
                     'Rejecting "{}" channel request from client.'.format(kind))
                 reject = True
         if reject:
-            tch.test_hit(17)
+            test_hit(17, "parse_channel_open", 23)
             msg = Message()
             msg.add_byte(cMSG_CHANNEL_OPEN_FAILURE)
             msg.add_int(chanid)
@@ -2620,7 +2619,7 @@ class Transport(threading.Thread, ClosingContextManager):
         chan = Channel(my_chanid)
         self.lock.acquire()
         try:
-            tch.test_hit(18)
+            test_hit(18, "parse_channel_open", 23)
             self._channels.put(my_chanid, chan)
             self.channels_seen[my_chanid] = True
             chan._set_transport(self)
@@ -2629,7 +2628,7 @@ class Transport(threading.Thread, ClosingContextManager):
             chan._set_remote_channel(
                 chanid, initial_window_size, max_packet_size)
         finally:
-            tch.test_hit(19)
+            test_hit(19, "parse_channel_open", 23)
             self.lock.release()
         m = Message()
         m.add_byte(cMSG_CHANNEL_OPEN_SUCCESS)
@@ -2642,13 +2641,13 @@ class Transport(threading.Thread, ClosingContextManager):
             'Secsh channel {:d} ({}) opened.'.format(my_chanid, kind)
         )
         if kind == 'auth-agent@openssh.com':
-            tch.test_hit(20)
+            test_hit(20, "parse_channel_open", 23)
             self._forward_agent_handler(chan)
         elif kind == 'x11':
-            tch.test_hit(21)
+            test_hit(21, "parse_channel_open", 23)
             self._x11_handler(chan, (origin_addr, origin_port))
         elif kind == 'forwarded-tcpip':
-            tch.test_hit(22)
+            test_hit(22, "parse_channel_open", 23)
             chan.origin_addr = (origin_addr, origin_port)
             self._tcp_handler(
                 chan,
@@ -2656,7 +2655,7 @@ class Transport(threading.Thread, ClosingContextManager):
                 (server_addr, server_port)
             )
         else:
-            tch.test_hit(23)
+            test_hit(23, "parse_channel_open", 23)
             self._queue_incoming_channel(chan)
 
     def _parse_debug(self, m):

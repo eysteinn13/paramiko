@@ -47,8 +47,8 @@ from paramiko.sftp import (
     CMD_REALPATH, CMD_EXTENDED, SFTP_OP_UNSUPPORTED,
 )
 
-from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("_process", 42)
+from test_parser import test_hit
+
 
 _hash_class = {
     'sha1': sha1,
@@ -339,22 +339,22 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
     def _process(self, t, request_number, msg):
         self._log(DEBUG, 'Request: {}'.format(CMD_NAMES[t]))
         if t == CMD_OPEN:
-            tch.test_hit(1)
+            test_hit(1, "process", 42)
             path = msg.get_text()
             flags = self._convert_pflags(msg.get_int())
             attr = SFTPAttributes._from_msg(msg)
             self._send_handle_response(
                 request_number, self.server.open(path, flags, attr))
         elif t == CMD_CLOSE:
-            tch.test_hit(2)
+            test_hit(2, "process", 42)
             handle = msg.get_binary()
             if handle in self.folder_table:
-                tch.test_hit(3)
+                test_hit(3, "process", 42)
                 del self.folder_table[handle]
                 self._send_status(request_number, SFTP_OK)
                 return
             if handle in self.file_table:
-                tch.test_hit(4)
+                test_hit(4, "process", 42)
                 self.file_table[handle].close()
                 del self.file_table[handle]
                 self._send_status(request_number, SFTP_OK)
@@ -362,137 +362,137 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
             self._send_status(
                 request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
         elif t == CMD_READ:
-            tch.test_hit(5)
+            test_hit(5, "process", 42)
             handle = msg.get_binary()
             offset = msg.get_int64()
             length = msg.get_int()
             if handle not in self.file_table:
-                tch.test_hit(6)
+                test_hit(6, "process", 42)
                 self._send_status(
                     request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
                 return
             data = self.file_table[handle].read(offset, length)
             if isinstance(data, (bytes_types, string_types)):
-                tch.test_hit(7)
+                test_hit(7, "process", 42)
                 if len(data) == 0:
-                    tch.test_hit(8)
+                    test_hit(8, "process", 42)
                     self._send_status(request_number, SFTP_EOF)
                 else:
-                    tch.test_hit(9)
+                    test_hit(9, "process", 42)
                     self._response(request_number, CMD_DATA, data)
             else:
-                tch.test_hit(10)
+                test_hit(10, "process", 42)
                 self._send_status(request_number, data)
         elif t == CMD_WRITE:
-            tch.test_hit(11)
+            test_hit(11, "process", 42)
             handle = msg.get_binary()
             offset = msg.get_int64()
             data = msg.get_binary()
             if handle not in self.file_table:
-                tch.test_hit(12)
+                test_hit(12, "process", 42)
                 self._send_status(
                     request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
                 return
             self._send_status(
                 request_number, self.file_table[handle].write(offset, data))
         elif t == CMD_REMOVE:
-            tch.test_hit(13)
+            test_hit(13, "process", 42)
             path = msg.get_text()
             self._send_status(request_number, self.server.remove(path))
         elif t == CMD_RENAME:
-            tch.test_hit(14)
+            test_hit(14, "process", 42)
             oldpath = msg.get_text()
             newpath = msg.get_text()
             self._send_status(
                 request_number, self.server.rename(oldpath, newpath))
         elif t == CMD_MKDIR:
-            tch.test_hit(15)
+            test_hit(15, "process", 42)
             path = msg.get_text()
             attr = SFTPAttributes._from_msg(msg)
             self._send_status(request_number, self.server.mkdir(path, attr))
         elif t == CMD_RMDIR:
-            tch.test_hit(16)
+            test_hit(16, "process", 42)
             path = msg.get_text()
             self._send_status(request_number, self.server.rmdir(path))
         elif t == CMD_OPENDIR:
-            tch.test_hit(17)
+            test_hit(17, "process", 42)
             path = msg.get_text()
             self._open_folder(request_number, path)
             return
         elif t == CMD_READDIR:
-            tch.test_hit(18)
+            test_hit(18, "process", 42)
             handle = msg.get_binary()
             if handle not in self.folder_table:
-                tch.test_hit(19)
+                test_hit(19, "process", 42)
                 self._send_status(
                     request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
                 return
             folder = self.folder_table[handle]
             self._read_folder(request_number, folder)
         elif t == CMD_STAT:
-            tch.test_hit(20)
+            test_hit(20, "process", 42)
             path = msg.get_text()
             resp = self.server.stat(path)
             if issubclass(type(resp), SFTPAttributes):
-                tch.test_hit(21)
+                test_hit(21, "process", 42)
                 self._response(request_number, CMD_ATTRS, resp)
             else:
-                tch.test_hit(22)
+                test_hit(22, "process", 42)
                 self._send_status(request_number, resp)
         elif t == CMD_LSTAT:
-            tch.test_hit(23)
+            test_hit(23, "process", 42)
             path = msg.get_text()
             resp = self.server.lstat(path)
             if issubclass(type(resp), SFTPAttributes):
-                tch.test_hit(24)
+                test_hit(24, "process", 42)
                 self._response(request_number, CMD_ATTRS, resp)
             else:
-                tch.test_hit(25)
+                test_hit(25, "process", 42)
                 self._send_status(request_number, resp)
         elif t == CMD_FSTAT:
-            tch.test_hit(26)
+            test_hit(26, "process", 42)
             handle = msg.get_binary()
             if handle not in self.file_table:
-                tch.test_hit(27)
+                test_hit(27, "process", 42)
                 self._send_status(
                     request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
                 return
             resp = self.file_table[handle].stat()
             if issubclass(type(resp), SFTPAttributes):
-                tch.test_hit(28)
+                test_hit(28, "process", 42)
                 self._response(request_number, CMD_ATTRS, resp)
             else:
-                tch.test_hit(29)
+                test_hit(29, "process", 42)
                 self._send_status(request_number, resp)
         elif t == CMD_SETSTAT:
-            tch.test_hit(30)
+            test_hit(30, "process", 42)
             path = msg.get_text()
             attr = SFTPAttributes._from_msg(msg)
             self._send_status(request_number, self.server.chattr(path, attr))
         elif t == CMD_FSETSTAT:
-            tch.test_hit(31)
+            test_hit(31, "process", 42)
             handle = msg.get_binary()
             attr = SFTPAttributes._from_msg(msg)
             if handle not in self.file_table:
-                tch.test_hit(32)
+                test_hit(32, "process", 42)
                 self._response(
                     request_number, SFTP_BAD_MESSAGE, 'Invalid handle')
                 return
             self._send_status(
                 request_number, self.file_table[handle].chattr(attr))
         elif t == CMD_READLINK:
-            tch.test_hit(33)
+            test_hit(33, "process", 42)
             path = msg.get_text()
             resp = self.server.readlink(path)
             if isinstance(resp, (bytes_types, string_types)):
-                tch.test_hit(34)
+                test_hit(34, "process", 42)
                 self._response(
                     request_number, CMD_NAME, 1, resp, '', SFTPAttributes())
             else:
-                tch.test_hit(35)
+                test_hit(35, "process", 42)
                 self._send_status(request_number, resp)
         elif t == CMD_SYMLINK:
-            tch.test_hit(36)
+            test_hit(36, "process", 42)
             # the sftp 2 draft is incorrect here!
             # path always follows target_path
             target_path = msg.get_text()
@@ -500,29 +500,29 @@ class SFTPServer (BaseSFTP, SubsystemHandler):
             self._send_status(
                 request_number, self.server.symlink(target_path, path))
         elif t == CMD_REALPATH:
-            tch.test_hit(37)
+            test_hit(37, "process", 42)
             path = msg.get_text()
             rpath = self.server.canonicalize(path)
             self._response(
                 request_number, CMD_NAME, 1, rpath, '', SFTPAttributes())
         elif t == CMD_EXTENDED:
-            tch.test_hit(38)
+            test_hit(38, "process", 42)
             tag = msg.get_text()
             if tag == 'check-file':
-                tch.test_hit(39)
+                test_hit(39, "process", 42)
                 self._check_file(request_number, msg)
             elif tag == 'posix-rename@openssh.com':
-                tch.test_hit(40)
+                test_hit(40, "process", 42)
                 oldpath = msg.get_text()
                 newpath = msg.get_text()
                 self._send_status(
                     request_number, self.server.posix_rename(oldpath, newpath)
                 )
             else:
-                tch.test_hit(41)
+                test_hit(41, "process", 42)
                 self._send_status(request_number, SFTP_OP_UNSUPPORTED)
         else:
-            tch.test_hit(42)
+            test_hit(42, "process", 42)
             self._send_status(request_number, SFTP_OP_UNSUPPORTED)
 
 

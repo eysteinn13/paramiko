@@ -22,8 +22,8 @@ from paramiko.py3compat import BytesIO, PY2, u, bytes_types, text_type
 
 from paramiko.util import ClosingContextManager
 
-from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("readline", 20)
+from test_parser import test_hit
+
 
 class BufferedFile (ClosingContextManager):
     """
@@ -247,37 +247,37 @@ class BufferedFile (ClosingContextManager):
         """
         # it's almost silly how complex this function is.
         if self._closed:
-            tch.test_hit(1)
+            test_hit(1, "readline", 20)
             raise IOError('File is closed')
         if not (self._flags & self.FLAG_READ):
-            tch.test_hit(2)
+            test_hit(2, "readline", 20)
             raise IOError('File not open for reading')
         line = self._rbuffer
         truncated = False
         while True:
-            tch.test_hit(3)
+            test_hit(3, "readline", 20)
             if (
                 self._at_trailing_cr and
                 self._flags & self.FLAG_UNIVERSAL_NEWLINE and
                 len(line) > 0
             ):
-                tch.test_hit(4)
+                test_hit(4, "readline", 20)
                 # edge case: the newline may be '\r\n' and we may have read
                 # only the first '\r' last time.
                 if line[0] == linefeed_byte_value:
-                    tch.test_hit(5)
+                    test_hit(5, "readline", 20)
                     line = line[1:]
                     self._record_newline(crlf)
                 else:
-                    tch.test_hit(6)
+                    test_hit(6, "readline", 20)
                     self._record_newline(cr_byte)
                 self._at_trailing_cr = False
             # check size before looking for a linefeed, in case we already have
             # enough.
             if (size is not None) and (size >= 0):
-                tch.test_hit(7)
+                test_hit(7, "readline", 20)
                 if len(line) >= size:
-                    tch.test_hit(8)
+                    test_hit(8, "readline", 20)
                     # truncate line
                     self._rbuffer = line[size:]
                     line = line[:size]
@@ -285,7 +285,7 @@ class BufferedFile (ClosingContextManager):
                     break
                 n = size - len(line)
             else:
-                tch.test_hit(9)
+                test_hit(9, "readline", 20)
                 n = self._bufsize
             if (
                 linefeed_byte in line or
@@ -294,15 +294,15 @@ class BufferedFile (ClosingContextManager):
                     cr_byte in line
                 )
             ):
-                tch.test_hit(10)
+                test_hit(10, "readline", 20)
                 break
             try:
                 new_data = self._read(n)
             except EOFError:
-                tch.test_hit(11)
+                test_hit(11, "readline", 20)
                 new_data = None
             if (new_data is None) or (len(new_data) == 0):
-                tch.test_hit(12)
+                test_hit(12, "readline", 20)
                 self._rbuffer = bytes()
                 self._pos += len(line)
                 return line if self._flags & self.FLAG_BINARY else u(line)
@@ -311,13 +311,13 @@ class BufferedFile (ClosingContextManager):
         # find the newline
         pos = line.find(linefeed_byte)
         if self._flags & self.FLAG_UNIVERSAL_NEWLINE:
-            tch.test_hit(13)
+            test_hit(13, "readline", 20)
             rpos = line.find(cr_byte)
             if (rpos >= 0) and (rpos < pos or pos < 0):
-                tch.test_hit(14)
+                test_hit(14, "readline", 20)
                 pos = rpos
         if pos == -1:
-            tch.test_hit(15)
+            test_hit(15, "readline", 20)
             # we couldn't find a newline in the truncated string, return it
             self._pos += len(line)
             return line if self._flags & self.FLAG_BINARY else u(line)
@@ -327,27 +327,27 @@ class BufferedFile (ClosingContextManager):
             xpos < len(line) and
             line[xpos] == linefeed_byte_value
         ):
-            tch.test_hit(16)
+            test_hit(16, "readline", 20)
             xpos += 1
         # if the string was truncated, _rbuffer needs to have the string after
         # the newline character plus the truncated part of the line we stored
         # earlier in _rbuffer
         if truncated:
-            tch.test_hit(17)
+            test_hit(17, "readline", 20)
             self._rbuffer = line[xpos:] + self._rbuffer
         else:
-            tch.test_hit(18)
+            test_hit(18, "readline", 20)
             self._rbuffer = line[xpos:]
 
         lf = line[pos:xpos]
         line = line[:pos] + linefeed_byte
         if (len(self._rbuffer) == 0) and (lf == cr_byte):
-            tch.test_hit(19)
+            test_hit(19, "readline", 20)
             # we could read the line up to a '\r' and there could still be a
             # '\n' following that we read next time.  note that and eat it.
             self._at_trailing_cr = True
         else:
-            tch.test_hit(20)
+            test_hit(20, "readline", 20)
             self._record_newline(lf)
         self._pos += len(line)
         return line if self._flags & self.FLAG_BINARY else u(line)

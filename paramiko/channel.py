@@ -42,8 +42,8 @@ from paramiko.buffered_pipe import BufferedPipe, PipeTimeout
 from paramiko import pipe
 from paramiko.util import ClosingContextManager
 
-from test_parser import TestCoverageHandler
-tch = TestCoverageHandler("_handle_request", 29)
+from test_parser import test_hit
+
 
 def open_only(func):
     """
@@ -1045,16 +1045,16 @@ class Channel (ClosingContextManager):
         server = self.transport.server_object
         ok = False
         if key == 'exit-status':
-            tch.test_hit(1)
+            test_hit(1, "handle_request", 30)
             self.exit_status = m.get_int()
             self.status_event.set()
             ok = True
         elif key == 'xon-xoff':
-            tch.test_hit(2)
+            test_hit(2, "handle_request", 30)
             # ignore
             ok = True
         elif key == 'pty-req':
-            tch.test_hit(3)
+            test_hit(3, "handle_request", 30)
             term = m.get_string()
             width = m.get_int()
             height = m.get_int()
@@ -1062,10 +1062,10 @@ class Channel (ClosingContextManager):
             pixelheight = m.get_int()
             modes = m.get_string()
             if server is None:
-                tch.test_hit(4)
+                test_hit(4, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(5)
+                test_hit(5, "handle_request", 30)
                 ok = server.check_channel_pty_request(
                     self,
                     term,
@@ -1076,65 +1076,65 @@ class Channel (ClosingContextManager):
                     modes
                 )
         elif key == 'shell':
-            tch.test_hit(6)
+            test_hit(6, "handle_request", 30)
             if server is None:
-                tch.test_hit(7)
+                test_hit(7, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(8)
+                test_hit(8, "handle_request", 30)
                 ok = server.check_channel_shell_request(self)
         elif key == 'env':
-            tch.test_hit(9)
+            test_hit(9, "handle_request", 30)
             name = m.get_string()
             value = m.get_string()
             if server is None:
-                tch.test_hit(10)
+                test_hit(10, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(11)
+                test_hit(11, "handle_request", 30)
                 ok = server.check_channel_env_request(self, name, value)
         elif key == 'exec':
-            tch.test_hit(12)
+            test_hit(12, "handle_request", 30)
             cmd = m.get_string()
             if server is None:
-                tch.test_hit(13)
+                test_hit(13, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(14)
+                test_hit(14, "handle_request", 30)
                 ok = server.check_channel_exec_request(self, cmd)
         elif key == 'subsystem':
-            tch.test_hit(15)
+            test_hit(15, "handle_request", 30)
             name = m.get_text()
             if server is None:
-                tch.test_hit(16)
+                test_hit(16, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(17)
+                test_hit(17, "handle_request", 30)
                 ok = server.check_channel_subsystem_request(self, name)
         elif key == 'window-change':
-            tch.test_hit(18)
+            test_hit(18, "handle_request", 30)
             width = m.get_int()
             height = m.get_int()
             pixelwidth = m.get_int()
             pixelheight = m.get_int()
             if server is None:
-                tch.test_hit(19)
+                test_hit(19, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(20)
+                test_hit(20, "handle_request", 30)
                 ok = server.check_channel_window_change_request(
                     self, width, height, pixelwidth, pixelheight)
         elif key == 'x11-req':
-            tch.test_hit(21)
+            test_hit(21, "handle_request", 30)
             single_connection = m.get_boolean()
             auth_proto = m.get_text()
             auth_cookie = m.get_binary()
             screen_number = m.get_int()
             if server is None:
-                tch.test_hit(22)
+                test_hit(22, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(23)
+                test_hit(23, "handle_request", 30)
                 ok = server.check_channel_x11_request(
                     self,
                     single_connection,
@@ -1143,24 +1143,25 @@ class Channel (ClosingContextManager):
                     screen_number
                 )
         elif key == 'auth-agent-req@openssh.com':
-            tch.test_hit(24)
+            test_hit(24, "handle_request", 30)
             if server is None:
-                tch.test_hit(25)
+                test_hit(25, "handle_request", 30)
                 ok = False
             else:
-                tch.test_hit(26)
+                test_hit(26, "handle_request", 30)
                 ok = server.check_channel_forward_agent_request(self)
         else:
-            tch.test_hit(27)
+            test_hit(27, "handle_request", 30)
             self._log(DEBUG, 'Unhandled channel request "{}"'.format(key))
             ok = False
         if want_reply:
-            tch.test_hit(28)
+            test_hit(28, "handle_request", 30)
             m = Message()
             if ok:
-                tch.test_hit(29)
+                test_hit(29, "handle_request", 30)
                 m.add_byte(cMSG_CHANNEL_SUCCESS)
             else:
+                test_hit(30, "handle_request", 30)
                 m.add_byte(cMSG_CHANNEL_FAILURE)
             m.add_int(self.remote_chanid)
             self.transport._send_user_message(m)
