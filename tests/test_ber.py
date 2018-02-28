@@ -27,10 +27,10 @@ class BerTester(unittest.TestCase):
 
     def test_encode_with_illegal_types(self):
         """
-        Encode should raise exception when used with string
+        Encode should raise exception when used with float
         """
         ber = BER()
-        self.assertRaises(TypeError, ber.encode, "1337")
+        self.assertRaises(BERException, ber.encode, 0.1337)
 
     def test_encode_works_on_lists_directly(self):
         """
@@ -60,5 +60,3 @@ class BerTester(unittest.TestCase):
         encoded = BER.encode_sequence(sequence)
         decoded = BER.decode_sequence(encoded)
         self.assertEqual(decoded, sequence)
-
-
