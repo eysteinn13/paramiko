@@ -25,6 +25,10 @@ import unittest
 from paramiko.agent import (AgentClientProxy, 
                             AgentSSH)
 
+"""
+The outcome of connect should be None in AgentCLientProxy when nothing
+happens except creation of the agent objects
+"""
 class AgentTest(unittest.TestCase):
     def test_connect(self):
         agentSSH = AgentSSH()

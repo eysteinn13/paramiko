@@ -191,7 +191,7 @@ class BufferedFileTest (unittest.TestCase):
         f.close()
 
         """
-        Verify that writeline writes correctly
+        Verify that writeline writes correctly. The correct list should be written to f.
         """
     def test_writelines(self):
         f = LoopbackFile('r+')
@@ -202,6 +202,9 @@ class BufferedFileTest (unittest.TestCase):
         self.assertEqual(f.readlines()[0],'test1test2test3test4')
         f.close()
 
+        """
+        Test should throw an IOError due to trying to read a closed file
+        """
     def test_file_not_open(self):
         f = LoopbackFile('r')
         f.close()

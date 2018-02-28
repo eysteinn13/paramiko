@@ -26,6 +26,9 @@ from paramiko.proxy import ProxyCommand
 
 class ProxyCommandTest(unittest.TestCase):
     def test_settimout(self):
+        """
+        The timeout property should be set to the argument of settimeout()
+        """
         proxyCommand = ProxyCommand("ls")
         proxyCommand.settimeout(10)
         self.assertEquals(10, proxyCommand.timeout)

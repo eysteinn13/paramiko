@@ -141,8 +141,10 @@ class PacketizerTest (unittest.TestCase):
         send = timeout()(p.send_message)
         self.assertRaises(EOFError, send, m)
 
-    # assert that the Packetizer raises an SSHException when receiving mangled input
     def test_4_read_exception(self):
+        """
+        assert that the Packetizer raises an SSHException when receiving mangled input
+        """
         rsock = LoopSocket()
         wsock = LoopSocket()
         rsock.link(wsock)
@@ -159,6 +161,9 @@ class PacketizerTest (unittest.TestCase):
         self.assertRaises(SSHException, p.read_message)
 
     def test_5_closed(self):
+        """
+        closed should return true if the socket bound to the packetizer is closed and false if it is open
+        """
         rsock = LoopSocket()
         wsock = LoopSocket()
         rsock.link(wsock)

@@ -543,11 +543,17 @@ Host *
             self.assertTrue(num < 1000)
 
     def test_constant_time_bytes_eq_false(self):
+        """
+        constant_time_bytes_eq should return false if the arguments are not equal
+        """
         a = b'\x43\x91'
         b = b'\x43\x91\x43\x91'
         self.assertFalse(paramiko.util.constant_time_bytes_eq(a, b))
 
     def test_constant_time_bytes_eq_true(self):
+        """
+        constant_time_bytes_eq should return true if the arguments are equal
+        """
         a = b'\x43\x91'
         b = b'\x43\x91'
         self.assertTrue(paramiko.util.constant_time_bytes_eq(a, b))
