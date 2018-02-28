@@ -159,6 +159,9 @@ class PacketizerTest (unittest.TestCase):
         self.assertRaises(SSHException, p.read_message)
 
     def test_5_closed(self):
+        """
+        closed should return true if the socket bound to the packetizer is closed and false if it is open
+        """
         rsock = LoopSocket()
         wsock = LoopSocket()
         rsock.link(wsock)
