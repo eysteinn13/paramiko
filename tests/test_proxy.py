@@ -28,4 +28,4 @@ class ProxyCommandTest(unittest.TestCase):
     def test_settimout(self):
         proxyCommand = ProxyCommand("ls")
         proxyCommand.settimeout(10)
-        this.assertEquals(10, proxyCommand.timeout)
+        self.assertEquals(10, proxyCommand.timeout)
