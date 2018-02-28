@@ -141,8 +141,10 @@ class PacketizerTest (unittest.TestCase):
         send = timeout()(p.send_message)
         self.assertRaises(EOFError, send, m)
 
-    # assert that the Packetizer raises an SSHException when receiving mangled input
     def test_4_read_exception(self):
+        """
+        assert that the Packetizer raises an SSHException when receiving mangled input
+        """
         rsock = LoopSocket()
         wsock = LoopSocket()
         rsock.link(wsock)
